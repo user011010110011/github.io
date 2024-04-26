@@ -1,0 +1,134 @@
+<html>
+    <head>
+      <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+      <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    </head>
+
+  <body>
+    <b><p>Today is <u><label id='today'></label></u></p></b>
+    <py-script>
+import pygame
+import random
+
+
+class Area(): #2.1 изготовление карточек
+    def __init__(self, x,y, width=10,height=10, color=None):
+        self.rect = pygame.Rect(x,y, width,height)
+        self.fill_color = color
+    def color(self, new_color):
+        self.fill_color = new_color
+    def fill(self):
+        pygame.draw.rect(mw, self.fill_color, self.rect)
+    def outline(self, frame_color, thickness):
+        pygame.draw.rect(mw, frame_color, self.rect, thickness)
+class Label(Area): #2.2 печать текста на них
+    def set_text(self, text, fsize=12, color=(0,0,0)):
+        self.image = pygame.font.Font(None, fsize).render(text, True, color)
+    def draw(self, shift_x=0, shift_y=0):
+        self.fill()
+        mw.blit(self.image, (self.rect.x + shift_x, self.rect.y + shift_y))
+pygame.init()
+
+
+#настройка цветов
+#3.1 цвета
+black = (0,0,0)
+#конец игры в проигрыше фон
+back2 = (242, 242, 240)
+#цвет неверной карточки
+red = (255, 94, 108)
+#цвет верной карточки
+green = (71, 237, 52)
+#цвет границы карточки
+border = (0,0,0)
+#стандартный цвет карточки
+yellow = (255, 255, 5)
+#задний фон во время игры
+back = (242, 242, 240)
+#3.2 задний фон
+mw = pygame.display.set_mode((500,500))
+mw.fill(back)
+
+#3.3 появление карточек, и настройка
+card_list = list()
+x = 70
+for i in range(4):
+    card = Label(x, 65 ,60, 100, yellow)
+    card.outline(border, 5)
+    card.set_text('!', 60)
+    card_list.append(card)
+    x += 100
+#3.4.1 счётчик очков
+points = 0
+num_points = Label(420,20, 100,40, back)
+num_points.set_text(str(points), 50)
+num_points.draw()
+#3.4.2 счётчик времени
+timer_point = 0
+timer_points = Label(40,20, 60,40, back)
+timer_points.set_text(str(timer_point), 50)
+timer_points.draw()
+#3.5.1 победа
+win_screen_text = Label(0,0, 500,500, green)
+win_screen_subtext = Label(0,150, 500,250, green)
+#3.5.2 проигрыш 
+lose_screen_text = Label(0,0, 500,500, back2)
+lose_screen_subtext = Label(0,150, 500,250, back2)
+
+'''№4 цикл'''
+#4.1 таймеры
+clock = pygame.time.Clock()
+timer_card = 17 #Note зависит от обновлений/сек
+while points < 5 and timer_point < 10*60:
+    pygame.display.update()
+    clock.tick(40)
+    #4.2 перебор карточек и их вывод
+    if timer_card == 17:
+        timer_card = 0
+        rand_text = random.randint(0,3)
+        for i in range(4):
+            card_list[i].color(yellow)
+            if i == rand_text:
+                card_list[i].draw(28,33)
+            else:
+                card_list[i].fill()
+    timer_card += 1
+    #4.3 выбор карточки мышкой и счётчики
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x, y = event.pos
+            for i in range(4):
+                if card_list[i].rect.collidepoint(x, y):
+                    if i == rand_text:
+                        card_list[i].color(green)
+                        points += 1
+                    else:
+                        card_list[i].color(red)
+                        points -= 0.5
+                    card_list[i].fill()
+                    num_points.set_text(str(points), 60)
+                    num_points.draw()
+    timer_point += 1
+    if timer_point%40 == 0:
+        timer_points.set_text(str(timer_point//40), 60)
+        timer_points.draw()
+'''№5 после цикла'''
+if points >= 5:
+    win_screen_text.set_text(str('Победа!'), 40)
+    win_screen_text.draw(220,100)
+    win_screen_subtext.set_text('Карточки собраны за '+str(timer_point//40)+' секунд.',40)
+    win_screen_subtext.draw()
+elif timer_point >= 10*40 and points < 5:
+    lose_screen_text.set_text('                    Проигрыш',50)
+    lose_screen_text.draw(0,100)
+    lose_screen_subtext.set_text('                   Попробуйте снова',40)
+    lose_screen_subtext.draw()
+else:
+    lose_screen_text.set_text('Сообщение об ошибке.', 40)
+    lose_screen_subtext.set_text('',40)
+    lose_screen_text.draw(200,100)
+    lose_screen_subtext.draw()
+pygame.display.update()
+    </py-script>
+  </body>
+</html>
